@@ -11,6 +11,7 @@
  *
  * Finally, please indicate approximately how many hours you spent on this:
  * #hours:
+	Haresh:1
  */
 
 #include "fsm.h"
