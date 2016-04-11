@@ -15,12 +15,15 @@
 
 #include "fsm.h"
 using namespace cppfsm;
+#include <vector>
+using std::vector;
 #include <iostream>
 using std::cin;
 using std::cout;
 using std::endl;
 #include <string>
 using std::string;
+using std::to_string;
 #include <set>
 using std::set;
 #include <map>
@@ -84,10 +87,62 @@ string translateHTMLReserved(char c) {
 	}
 }
 
+
+string firstTranslation(string l);
+string handleEsc(string e);
+
+
+
+
+
 int main() {
 	// TODO: write the main program.
 	// It may be helpful to break this down and write
 	// a function that processes a single line, which
 	// you repeatedly call from main().
+  string line;
+	vector<string>lines;
+	while(getline(cin,line))
+	{
+		if(line != "EOF")
+			lines.push_back(line);
+		else
+			break;
+	}
 	return 0;
+}
+
+
+
+
+
+string firstTranslation(string l)
+{
+	int s = 0;
+	char c;
+	string oldTranslation;
+	for(unsigned int i = 0; i < l.length(); i++)
+	{
+		c = l[i];
+		updateState(s,c);
+		oldTranslation += to_string(s);
+	}
+	return oldTranslation;
+}
+
+string handleEsc(string e)
+{
+	string f;
+	for(unsigned int i = 0; i < e.length(); i++)
+	{
+		if(translateHTMLReserved(e[i]) == to_string(e[i]))
+		{
+			f += e[i];
+		}
+		else
+		{
+			f += translateHTMLReserved(e[i]);
+		}
+	}
+	return f;
 }
