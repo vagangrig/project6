@@ -13,6 +13,7 @@
  * #hours:
 	Haresh:1
 	Areesha:1
+	Vagan:1
  */
 
 #include "fsm.h"
@@ -165,6 +166,51 @@ string secondTranslation(string a, string b)
 			i = endOfKey - 1;
 		}
 
+    else if(b[i] == '0') // start
+		{
+			if(a[i] == '\"')
+			{
+				newTranslation += hlspans[hlstrlit] + translateHTMLReserved(a[i]) + spanend;
+			}
+			else
+			{
+				newTranslation += translateHTMLReserved(a[i]);
+			}
+		}
+
+		else if(b[i] == '3') // strlit
+		{
+			int endOfStr = i + 1;
+			int id = 1;
+			while(b[endOfStr] == '3')
+			{
+				endOfStr++;
+				if(b[endOfStr] == '5')
+				{
+					if(b[endOfStr + 1] == '7')
+						id = 3;
+					else
+						id = 2;
+					break;
+				}
+			}
+			switch(id)
+			{
+				case 1:
+					newTranslation += hlspans[hlstrlit] + handleEsc(a.substr(i, endOfStr - i + 1)) + spanend;
+					i = endOfStr;
+					break;
+				case 2:
+					newTranslation += hlspans[hlstrlit] + handleEsc(a.substr(i, endOfStr - i)) + spanend + hlspans[hlescseq] + a.substr(endOfStr, 2) + spanend;
+					i = endOfStr + 1;
+					break;
+				case 3:
+					newTranslation += hlspans[hlstrlit] + handleEsc(a.substr(i, endOfStr - i)) + spanend + hlspans[hlerror] + a.substr(endOfStr) + spanend;
+					i = a.length();
+					break;
+			}
+		}
+
     else if(b[i] == '4') // readfs
 		{
 			if(a[i] == '/' && a[i+1] == '/') // comment
@@ -174,6 +220,18 @@ string secondTranslation(string a, string b)
 			}
       else
         newTranslation += translateHTMLReserved(a[i]);
+		}
+
+    else if(b[i] == '5') // escseq
+		{
+			if(b[i + 1] == '7')
+			{
+				newTranslation += hlspans[hlerror] + handleEsc(to_string(b[i])) + spanend;
+			}
+			else
+			{
+				newTranslation += hlspans[hlescseq] + handleEsc(to_string(b[i])) + spanend;
+			}
 		}
 
     else if(b[i] == '6') // scannum
