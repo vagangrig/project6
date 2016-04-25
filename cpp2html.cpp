@@ -12,6 +12,7 @@
  * Finally, please indicate approximately how many hours you spent on this:
  * #hours:
 	Haresh:1
+	Areesha:1
  */
 
 #include "fsm.h"
@@ -90,6 +91,8 @@ string translateHTMLReserved(char c) {
 
 
 string firstTranslation(string l);
+string secondTranslation(string a, string b);
+string findKeyword(string k);
 string handleEsc(string e);
 
 
@@ -110,6 +113,10 @@ int main() {
 		else
 			break;
 	}
+	for(unsigned int i = 0; i < lines.size(); i++)
+	{
+		cout << secondTranslation(lines[i], firstTranslation(lines[i])) << endl;
+	}
 	return 0;
 }
 
@@ -129,6 +136,78 @@ string firstTranslation(string l)
 		oldTranslation += to_string(s);
 	}
 	return oldTranslation;
+}
+
+string secondTranslation(string a, string b)
+{
+	// a is the original string
+	// b is the state translation
+	if(a.length() != b.length())
+		cout << "Fatal error has occured.\n";
+	string newTranslation;
+  for(unsigned int i = 0; i < a.length(); i++)
+	{
+		if(b[i] == '1') // scanid
+		{
+			string currentKey;
+			int endOfKey = i;
+			int len = 0;
+			while(b[endOfKey] == '1')
+			{
+				endOfKey++;
+				len++;
+			}
+			currentKey = a.substr(i, len);
+			if(hlmap.count(currentKey) > 0)
+				newTranslation += findKeyword(currentKey);
+			else
+				newTranslation += handleEsc(currentKey);
+			i = endOfKey - 1;
+		}
+
+    else if(b[i] == '4') // readfs
+		{
+			if(a[i] == '/' && a[i+1] == '/') // comment
+			{
+				newTranslation += hlspans[hlcomment] + handleEsc(a.substr(i)) + spanend;
+				i = a.length();
+			}
+      else
+        newTranslation += translateHTMLReserved(a[i]);
+		}
+
+    else if(b[i] == '6') // scannum
+		{
+			int endOfNum = i;
+			while(INSET(a[endOfNum],num))
+				endOfNum++;
+			newTranslation += hlspans[hlnumeric] + handleEsc(a.substr(i, endOfNum - i)) + spanend;
+			i = endOfNum - 1;
+		}
+
+    else if(b[i] == '7') // error
+		{
+			if(b[i - 1] == '5')
+			{
+				int pos = newTranslation.length() - 1;
+				newTranslation += hlspans[hlerror] + handleEsc(a.substr(i - 1)) + spanend;
+				newTranslation.erase(pos, 0);
+			}
+			else
+				newTranslation += hlspans[hlerror] + handleEsc(a.substr(i)) + spanend;
+			i = a.length();
+		}
+  }
+	return newTranslation;
+}
+
+string findKeyword(string k)
+{
+	if(hlmap.count(k) > 0)
+	{
+		return hlspans[hlmap[k]] + k + spanend;
+	}
+	return k;
 }
 
 string handleEsc(string e)
